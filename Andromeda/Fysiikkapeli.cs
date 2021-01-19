@@ -103,7 +103,9 @@ public class Andromeda : PhysicsGame
     */
 
 
-    //generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin
+    /// <summary>
+    /// Generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin
+    /// </summary>
     public void LataaGalaksi()
     {
         LuoRahalaskuri();
@@ -153,7 +155,9 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //luo punaisen täpän, joka indikoi pelattavaa kentää galaksikartalla
+    /// <summary>
+    /// luo punaisen täpän, joka indikoi pelattavaa kentää galaksikartalla
+    /// </summary>
     public void KohdeIkoni(int kenttanumero)
     {
         GameObject system = new GameObject(15, 15)
@@ -171,7 +175,9 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //luo galaksikarttaan keltaisen täpän kauppapaikkaa varten
+    /// <summary>
+    /// luo galaksikarttaan keltaisen täpän kauppapaikkaa varten
+    /// </summary>
     public void KauppaIkoni()
     {
         Widget kauppa = new Widget(15, 15)
@@ -189,7 +195,9 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //avaa kauppanäkymän, josta tarkoitus voida ostaa lisää HP:ta, ammuksia ja parempia aseita
+    /// <summary>
+    /// avaa kauppanäkymän, josta tarkoitus voida ostaa lisää HP:ta, ammuksia ja parempia aseita
+    /// </summary>
     public void AvaaKauppa()
     {
         //ClearAll();
