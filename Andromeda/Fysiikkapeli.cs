@@ -13,7 +13,7 @@ using Jypeli.Widgets;
 
 /*
  TODO:
-- Viholliset
+- Viholliset ampumaan
 - Lisäkenttien tekeminen
 - HP
 - ammukset
@@ -21,15 +21,12 @@ using Jypeli.Widgets;
 - kaupasta ostaminen
 - kun x kenttää suoritettu, aukeaa loppubossi
 - loppubossi
-- kenttanro-laskuri toimimaan
 - kaupan tähtibugi kuntoon
-- LataaGalaksi -bugi kuntoon kentän jälkeen
-- tähtien sijainti generoidessa (DONE)
 - tähdet ja kauppa samaan aliohjelmaan
 - galaksikarttojen täppiin himmentymisanimaatio (bonuksen bonus jos jaksan)
-- tietoja seuraavasta kentästä ilmestyy, kun hiiren vie karttamerkin päälle
+- tietoja seuraavasta kentästä ilmestyy, kun hiiren vie karttamerkin päälle (jälleen bonuksen bonus)
 - 15.12 Liikkuminen toimimaan, kentän layout kuntoon
-- valikoidenluonnin yhdistäminen
+- valikoiden luonnin yhdistäminen
  */
 
 
@@ -48,8 +45,8 @@ public class Andromeda : PhysicsGame
     static private Image[] hahmonKavely = LoadImages("tile000", "tile001", "tile002", "tile003", "tile004", "tile005", "tile006", "tile007", "tile008", "tile009");
     private Label pistenaytto;
     private int kenttanro = 0;
-    const int KENTTA_LKM = 3;
-    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen
+    const int KENTTA_LKM = 3; //kenttien maksimimäärä
+    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty kaksinkertaista määrää kohteita
     private int rahatilanne;
     private LaserGun laserase; //vihujen ase
     private PlasmaCannon plasmatykki; //bossin ase
@@ -66,12 +63,14 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// Päävalikko
+    /// Päävalikko, josta peli alkaa
     /// </summary>
     public void Alkuvalikko()
     {
         ClearAll();
         kenttanro = 0;
+        rahatilanne = 0;
+
         MultiSelectWindow paaValikko = new MultiSelectWindow("WELCOME ABOARD, COMMANDER", "Explore the Galaxy", "Disembark");
         MediaPlayer.Play("menutheme");
         MediaPlayer.IsRepeating = true;
@@ -104,7 +103,7 @@ public class Andromeda : PhysicsGame
     */
 
 
-    //generoi galaksikartalle tietyn määrän kohdetähtiä kohdetähteä ja kauppapaikan satunnaisiin sijainteihin
+    //generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin
     public void LataaGalaksi()
     {
         LuoRahalaskuri();
@@ -276,7 +275,7 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //luo perusvihollisen
+    //luo perusvihollisen. TODO: vihu ampuu myös takaisin
     void LisaaAlien(Vector paikka, double leveys, double korkeus)
     {
         vihollinen = new PlatformCharacter(leveys, korkeus)
