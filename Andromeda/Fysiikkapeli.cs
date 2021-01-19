@@ -71,7 +71,7 @@ public class Andromeda : PhysicsGame
     public void Alkuvalikko()
     {
         ClearAll();
-
+        kenttanro = 0;
         MultiSelectWindow paaValikko = new MultiSelectWindow("WELCOME ABOARD, COMMANDER", "Explore the Galaxy", "Disembark");
         MediaPlayer.Play("menutheme");
         MediaPlayer.IsRepeating = true;
