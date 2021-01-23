@@ -34,24 +34,32 @@ public class Andromeda : PhysicsGame
 {
     private const double NOPEUS = 100;
     private const double HYPPYNOPEUS = 400;
+    
     private PlatformCharacter pelaaja;
     private PlatformCharacter vihollinen;
+    
     static readonly private Image menutausta = LoadImage("andromeda_menu_tausta");
     static readonly private Image galaksitausta = LoadImage("galaksi");
     static readonly private Image kauppatausta = LoadImage("kauppa_tausta");
     static readonly private Image vihusprite = LoadImage("vihu");
     static readonly private SoundEffect nappi = LoadSoundEffect("button");
     static readonly private SoundEffect kentanalku = LoadSoundEffect("kentta_alku");
-    static private Image[] hahmonKavely = LoadImages("tile000", "tile001", "tile002", "tile003", "tile004", "tile005", "tile006", "tile007", "tile008", "tile009");
+    private static readonly Image[] hahmonKavely = LoadImages("tile000", "tile001", "tile002", "tile003", "tile004", "tile005", "tile006", "tile007", "tile008", "tile009");
+    
     private Label pistenaytto;
+
     private int kenttanro = 0;
     const int KENTTA_LKM = 3; //kenttien maksimimäärä
-    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty kaksinkertaista määrää kohteita
+    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty uutta satsia kohteita aina kentän 
     private int rahatilanne;
-    private LaserGun laserase; //vihujen ase
-    private PlasmaCannon plasmatykki; //bossin ase
+
+    private readonly LaserGun laserase; //vihujen ase
+    private readonly PlasmaCannon plasmatykki; //bossin ase
 
 
+    /// <summary>
+    /// Pelin käynnistävä aliohjelma
+    /// </summary>
     public override void Begin()
     {
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
@@ -124,6 +132,7 @@ public class Andromeda : PhysicsGame
             MediaPlayer.Play("Uncharted");
             MediaPlayer.IsRepeating = true;
 
+            //"alustetaan" tähtilista
             List<int> tahdet = new List<int>();
             for (int i = 0; i < KENTTA_LKM; i++)
             {
@@ -142,7 +151,7 @@ public class Andromeda : PhysicsGame
         {
             if (kenttanro == KENTTA_LKM)
             {
-                Alkuvalikko();
+                Alkuvalikko();//tulee vaihtaa bossikentäksi kun se on tehty
             }
         }
         //pomovastus
@@ -257,9 +266,12 @@ public class Andromeda : PhysicsGame
     void LisaaTaso(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
+
         taso.Position = paikka;
         taso.Color = Color.DarkBlue;
         taso.IgnoresPhysicsLogics = true;
+        taso.Tag = "seinä";
+
         Add(taso);
     }
 
@@ -274,7 +286,7 @@ public class Andromeda : PhysicsGame
             Mass = 100.0,
             Animation = new Animation(hahmonKavely),
             Weapon = new LaserGun(10, 10),
-            Size = new Vector(10, 10),
+            Size = new Vector(10, 15),
         };
         
         Add(pelaaja);
@@ -296,11 +308,14 @@ public class Andromeda : PhysicsGame
         Add(vihollinen);
 
         //AI
-        PlatformWandererBrain vihuAivot = new PlatformWandererBrain();
-        vihuAivot.JumpSpeed = 700;
-        vihuAivot.TriesToJump = true;
+        PlatformWandererBrain vihuAivot = new PlatformWandererBrain
+        {
+            JumpSpeed = 700,
+            TriesToJump = true
+        };
         //Aivot käyttöön oliolle
         vihollinen.Brain = vihuAivot;
+        vihollinen.Tag = "vihu";
     }
 
 
@@ -419,8 +434,19 @@ public class Andromeda : PhysicsGame
     //käsittelee ampuma-aseiden osumat
     void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
     {
-        kohde.Destroy();
-        ammus.Destroy();
+        if (kohde.Tag == "vihu")
+        {
+            kohde.Destroy();
+            ammus.Destroy();
+            rahatilanne += 100;
+        }
+        else
+        {
+            if (kohde.Tag == "seinä")
+            {
+                ammus.Destroy();
+            }
+        }
     }
 
 
