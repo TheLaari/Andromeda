@@ -5,7 +5,7 @@ using Jypeli.Assets;
 /// @author Joni Laari
 /// @version 26.1.2021
 /// <summary>
-/// Andromedan galaksi on vaarallinen paikka ja palkkasoturille riittää töitä. Pelaaja on eräs tällainen galaktinen tuholaistorjuja, joka rahaa vastaan hävittää inhoja otuksia.
+/// Andromeda
 /// </summary>
 
 /*
@@ -30,6 +30,8 @@ ht3
 -dokumentaatio
 -kaikki privaatiksi
 -aliohjelmien yhdistäminen (taso, portti, raha)
+
+^ A OK
  */
 
 
@@ -96,8 +98,8 @@ public class Andromeda : PhysicsGame
 
 
     /*
-     //alunperin tarkoitus oli lisätä myös lentelykenttiä, jota varten tässä valittaisiin alus.
-    public void Alusvalikko()
+     //alunperin tarkoitus oli lisätä myös lentelykenttiä, jota varten tässä valittaisiin alus. 
+    private void Alusvalikko()
     {
         nappi.Play();
         MultiSelectWindow alusvalikko = new MultiSelectWindow("Pick your spacecraft", "Cotentin", "Caledonia", "Calabria");
