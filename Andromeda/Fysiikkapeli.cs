@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Jypeli;
 using Jypeli.Assets;
-using Jypeli.Controls;
-using Jypeli.Widgets;
 
 /// @author Joni Laari
-/// @version 18.12.2020
+/// @version 26.1.2021
 /// <summary>
-/// Andromeda
+/// Andromedan galaksi on vaarallinen paikka ja palkkasoturille riittää töitä. Pelaaja on eräs tällainen galaktinen tuholaistorjuja, joka rahaa vastaan hävittää inhoja otuksia.
 /// </summary>
 
 /*
@@ -27,14 +24,17 @@ using Jypeli.Widgets;
 - tietoja seuraavasta kentästä ilmestyy, kun hiiren vie karttamerkin päälle (jälleen bonuksen bonus)
 - 15.12 Liikkuminen toimimaan, kentän layout kuntoon
 - valikoiden luonnin yhdistäminen
+
+
+ht3
+-dokumentaatio
+-kaikki privaatiksi
+-aliohjelmien yhdistäminen (taso, portti, raha)
  */
 
 
 public class Andromeda : PhysicsGame
 {
-    private const double NOPEUS = 100;
-    private const double HYPPYNOPEUS = 400;
-    
     private PlatformCharacter pelaaja;
     private PlatformCharacter vihollinen;
     
@@ -43,18 +43,19 @@ public class Andromeda : PhysicsGame
     static readonly private Image kauppatausta = LoadImage("kauppa_tausta");
     static readonly private Image vihusprite = LoadImage("vihu");
     static readonly private SoundEffect nappi = LoadSoundEffect("button");
-    static readonly private SoundEffect kentanalku = LoadSoundEffect("kentta_alku");
+    static readonly private SoundEffect kentanAlku = LoadSoundEffect("kentta_alku");
     private static readonly Image[] hahmonKavely = LoadImages("tile000", "tile001", "tile002", "tile003", "tile004", "tile005", "tile006", "tile007", "tile008", "tile009");
     
     private Label pistenaytto;
+    private readonly IntMeter rahalaskuri = new IntMeter(0);
 
     private int kenttanro = 0;
-    const int KENTTA_LKM = 3; //kenttien maksimimäärä
-    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty uutta satsia kohteita aina kentän 
-    private int rahatilanne;
 
-    private readonly LaserGun laserase; //vihujen ase
-    private readonly PlasmaCannon plasmatykki; //bossin ase
+    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty uutta satsia kohteita aina kentän 
+    //private int rahatilanne;
+
+    private readonly LaserGun laserase; //vihujen ase TBI
+    private readonly PlasmaCannon plasmatykki; //bossin ase TBI
 
 
     /// <summary>
@@ -73,11 +74,11 @@ public class Andromeda : PhysicsGame
     /// <summary>
     /// Päävalikko, josta peli alkaa
     /// </summary>
-    public void Alkuvalikko()
+    private void Alkuvalikko()
     {
         ClearAll();
         kenttanro = 0;
-        rahatilanne = 0;
+        rahalaskuri.Value = 0;
 
         MultiSelectWindow paaValikko = new MultiSelectWindow("WELCOME ABOARD, COMMANDER", "Explore the Galaxy", "Disembark");
         MediaPlayer.Play("menutheme");
@@ -114,9 +115,10 @@ public class Andromeda : PhysicsGame
     /// <summary>
     /// Generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin
     /// </summary>
-    public void LataaGalaksi()
+    private void LataaGalaksi()
     {
-        LuoRahalaskuri();
+        const int KENTTA_LKM = 3; //kenttien maksimimäärä
+        LuoPistenaytto();
 
         Camera.Reset();
         Camera.Zoom(1);
@@ -154,7 +156,7 @@ public class Andromeda : PhysicsGame
                 Alkuvalikko();//tulee vaihtaa bossikentäksi kun se on tehty
             }
         }
-        //pomovastus
+        //pomovastus TBI
         /*
         else
         {
@@ -165,9 +167,10 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// luo punaisen täpän, joka indikoi pelattavaa kentää galaksikartalla
+    /// Luo galaksikarttaan punaisen napin kenttää varten.
     /// </summary>
-    public void KohdeIkoni(int kenttanumero)
+    /// <param name="kenttanumero">käytetään kentän uniikin tägin luomista varten</param>
+    private void KohdeIkoni(int kenttanumero)
     {
         GameObject system = new GameObject(15, 15)
         {
@@ -185,9 +188,9 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// luo galaksikarttaan keltaisen täpän kauppapaikkaa varten
+    /// Luo galaksikarttaan keltaisen napin kauppapaikkaa varten.
     /// </summary>
-    public void KauppaIkoni()
+    private void KauppaIkoni()
     {
         Widget kauppa = new Widget(15, 15)
         {
@@ -205,9 +208,9 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// avaa kauppanäkymän, josta tarkoitus voida ostaa lisää HP:ta, ammuksia ja parempia aseita
+    /// Avaa kauppanäkymän, josta tarkoitus voida ostaa lisää HP:ta, ammuksia ja parempia aseita.
     /// </summary>
-    public void AvaaKauppa()
+    private void AvaaKauppa()
     {
         //ClearAll();
         nappi.Play();
@@ -226,8 +229,10 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //luo normaalin kentän
-    public void LuoKentta()
+    /// <summary>
+    /// Luo normaalin kentän.
+    /// </summary>
+    private void LuoKentta()
     {
         kenttanro++;
         kauppavierailu = 0; //nollaa kauppavierailu-muuttujan, jotta kentän lopuksi tähdet luodaan uudelleen
@@ -236,15 +241,18 @@ public class Andromeda : PhysicsGame
         Gravity = new Vector(0, -800.0);
 
         nappi.Play();
-        kentanalku.Play();
+        kentanAlku.Play();
         MediaPlayer.Play("kenttatheme");
         MediaPlayer.IsRepeating = true;
 
+        //luo kenttänumeron mukaisen kentän tiedostosta
         TileMap kentta = TileMap.FromLevelAsset(kenttanro.ToString());
-        kentta.SetTileMethod('#', LisaaTaso);
+        kentta.SetTileMethod('1', LisaaObjekti, Color.DarkBlue, "taso", Shape.Rectangle); //sininen kenttäelementti ykköstasoon
+        kentta.SetTileMethod('2', LisaaObjekti, Color.MediumPurple, "taso", Shape.Rectangle); //purppura kenttäelementti kakkostasoon
+        kentta.SetTileMethod('3', LisaaObjekti, Color.BrightGreen, "taso", Shape.Rectangle); //vihreä kenttäelementti
+        kentta.SetTileMethod('P', LisaaObjekti, Color.Red, "portti", Shape.Octagon); //kentän poistumisportti
         kentta.SetTileMethod('*', LisaaRaha);
         kentta.SetTileMethod('N', LisaaPelaaja);
-        kentta.SetTileMethod('P', LisaaPortti);
         kentta.SetTileMethod('V', LisaaAlien);
         kentta.Execute(10, 10);
 
@@ -258,28 +266,42 @@ public class Andromeda : PhysicsGame
         //Camera.StayInLevel = true;
 
         //rahalaskuri
-        LuoRahalaskuri();
+        LuoPistenaytto();
     }
 
 
-    //kenttäelementti
-    void LisaaTaso(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// Lisää kenttäobjekti, kuten seinä, raha tai poistumisportti.
+    /// </summary>
+    /// <param name="paikka"></param>
+    /// <param name="leveys"></param>
+    /// <param name="korkeus"></param>
+    /// <param name="vari"></param>
+    /// <param name="tag"></param>
+    /// <param name="muoto"></param>
+    private void LisaaObjekti(Vector paikka, double leveys, double korkeus, Color vari, string tag, Shape muoto)
     {
         PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
 
         taso.Position = paikka;
-        taso.Color = Color.DarkBlue;
+        taso.Color = vari;
         taso.IgnoresPhysicsLogics = true;
-        taso.Tag = "seinä";
+        taso.Tag = tag;
+        taso.Shape = muoto;
+        
 
         Add(taso);
     }
 
 
-    //luo pelaajahahmon ja antaa sille aseen. TODO: aseen vaihtaminen
-    void LisaaPelaaja(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// Luo pelaajahahmon ja antaa sille aseen. TODO: aseen vaihtaminen
+    /// </summary>
+    /// <param name="paikka">pelaajalle annettava sijainti</param>
+    /// <param name="leveys">pelaajan leveys</param>
+    /// <param name="korkeus">pelaajan korkeus</param>
+    private void LisaaPelaaja(Vector paikka, double leveys, double korkeus)
     {
-
         pelaaja = new PlatformCharacter(leveys, korkeus)
         {
             Position = paikka,
@@ -295,15 +317,20 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //luo perusvihollisen. TODO: vihu ampuu myös takaisin
-    void LisaaAlien(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// Luo perusvihollisen. TODO: vihu ampuu myös takaisin
+    /// </summary>
+    /// <param name="paikka">vihun sijainti</param>
+    /// <param name="leveys">vihun leveys</param>
+    /// <param name="korkeus">vihun korkeus</param>
+    private void LisaaAlien(Vector paikka, double leveys, double korkeus)
     {
         vihollinen = new PlatformCharacter(leveys, korkeus)
         {
             Image = vihusprite,
             Position = paikka,
             Mass = 100.0,
-            //Weapon = new LaserGun(30, 10),
+            //Weapon = new LaserGun(30, 10), //vihun ase
         };
         Add(vihollinen);
 
@@ -319,8 +346,13 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //lisää kenttään kerättävää rahaa
-    void LisaaRaha(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// lisää kenttään kerättävä kolikko
+    /// </summary>
+    /// <param name="paikka">kolikon sijainti</param>
+    /// <param name="leveys">kolikon leveys</param>
+    /// <param name="korkeus">kolikon korkeus</param>
+    private void LisaaRaha(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject raha = PhysicsObject.CreateStaticObject((leveys * 0.5) , (korkeus * 0.5));
 
@@ -334,24 +366,14 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //Kentän poistumisportti, palauttaa pelaajan takaisin galaksikarttaan
-    void LisaaPortti(Vector paikka, double leveys, double korkeus)
+    /// <summary>
+    /// Näppäimet peliin
+    /// </summary>
+    private void LisaaNappaimet()
     {
-        PhysicsObject portti = PhysicsObject.CreateStaticObject(leveys, korkeus);
+        const double NOPEUS = 100;
+        const double HYPPYNOPEUS = 400;
 
-        portti.IgnoresCollisionResponse = true;
-        portti.Shape = Shape.Hexagon;
-        portti.Color = Color.Red;
-        portti.Position = paikka;
-        portti.Tag = "portti";
-
-        Add(portti);
-    }
-
-
-    //Näppäimet peliin
-    void LisaaNappaimet()
-    {
         Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä ohjeet");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
@@ -370,33 +392,49 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //liikuttaa hahmoa
-    void Liikuta(PlatformCharacter pelaaja, double NOPEUS)
+    /// <summary>
+    /// liikuttaa hahmoa
+    /// </summary>
+    /// <param name="pelaaja">pelaajahahmo</param>
+    /// <param name="nopeus">pelaajan liikkumisnopeus</param>
+    private void Liikuta(PlatformCharacter pelaaja, double nopeus)
     {
-        pelaaja.Walk(NOPEUS);
+        pelaaja.Walk(nopeus);
         pelaaja.Animation.Start(1);
         pelaaja.Animation.FPS = 10;
     }
 
 
-    //laittaa hahmon hyppäämään
-    void Hyppaa(PlatformCharacter hahmo, double NOPEUS)
+    /// <summary>
+    /// laittaa hahmon hyppäämään
+    /// </summary>
+    /// <param name="hahmo">hyppäävä pelaajahahmo</param>
+    /// <param name="hyppynopeus">hyppynopeus</param>
+    private void Hyppaa(PlatformCharacter hahmo, double hyppynopeus)
     {
-        pelaaja.Jump(NOPEUS);
+        pelaaja.Jump(hyppynopeus);
     }
 
 
-    //rahan keräämisen käsittely
-    void TormaaRahaan(PhysicsObject hahmo, PhysicsObject raha)
+    /// <summary>
+    /// rahan keräämisen käsittely
+    /// </summary>
+    /// <param name="hahmo">rahaan törmäävä pelihahmo</param>
+    /// <param name="raha">kolikko, johon törmätään</param>
+    private void TormaaRahaan(PhysicsObject hahmo, PhysicsObject raha)
     {
         raha.Destroy();
         nappi.Play();
-        rahatilanne += 100;
+        rahalaskuri.Value += 100;
     }
 
 
-    //porttiinmenon käsittely
-    void MenePorttiin(PhysicsObject hahmo, PhysicsObject portti)
+    /// <summary>
+    /// Porttiinmenon käsittely
+    /// </summary>
+    /// <param name="hahmo">porttiin osuva (pelaaja)hahmo</param>
+    /// <param name="portti">portti johon törmätään</param>
+    private void MenePorttiin(PhysicsObject hahmo, PhysicsObject portti)
     {
         nappi.Play();
         ClearAll();
@@ -404,8 +442,11 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //pelaajan aseella ampuminen
-    void AmmuAseella(PlatformCharacter pelaaja)
+    /// <summary>
+    /// Pelaajan aseella ampuminen
+    /// </summary>
+    /// <param name="pelaaja">ampuva pelaajahahmo</param>
+    private void AmmuAseella(PlatformCharacter pelaaja)
     {
         PhysicsObject ammus = pelaaja.Weapon.Shoot();
         if (ammus != null)
@@ -418,8 +459,11 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //vihollinen ampuu
-    void VihuAmpuu(PlatformCharacter vihollinen)
+    /// <summary>
+    /// Vihollinen ampuu
+    /// </summary>
+    /// <param name="vihollinen">ampuva vihollinen</param>
+    private void VihuAmpuu(PlatformCharacter vihollinen)
     {
         PhysicsObject ammus = vihollinen.Weapon.Shoot();
         if (ammus != null)
@@ -431,18 +475,22 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //käsittelee ampuma-aseiden osumat
-    void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
+    /// <summary>
+    /// käsittelee ampuma-aseiden osumat
+    /// </summary>
+    /// <param name="ammus">osuva ammus</param>
+    /// <param name="kohde">kohde johon ammus osuu</param>
+    private void AmmusOsui(PhysicsObject ammus, PhysicsObject kohde)
     {
-        if (kohde.Tag == "vihu")
+        if (kohde.Tag.ToString() == "vihu")
         {
             kohde.Destroy();
             ammus.Destroy();
-            rahatilanne += 100;
+            rahalaskuri.Value += 100;
         }
         else
         {
-            if (kohde.Tag == "seinä")
+            if (kohde.Tag.ToString() == "seinä")
             {
                 ammus.Destroy();
             }
@@ -450,11 +498,11 @@ public class Andromeda : PhysicsGame
     }
 
 
-    //rahaa (pisteitä) seuraava laskuri
-    public void LuoRahalaskuri()
+    /// <summary>
+    /// rahaa (pisteitä) seuraava laskuri
+    /// </summary>
+    private void LuoPistenaytto()
     {
-        IntMeter rahalaskuri = new IntMeter(rahatilanne);
-
         pistenaytto = new Label
         {
             X = Screen.Left + 100,
