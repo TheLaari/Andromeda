@@ -251,7 +251,7 @@ public class Andromeda : PhysicsGame
         TileMap kentta = TileMap.FromLevelAsset(kenttanro.ToString());
         kentta.SetTileMethod('1', LisaaObjekti, Color.DarkBlue, "taso", Shape.Rectangle); //sininen kenttäelementti ykköstasoon
         kentta.SetTileMethod('2', LisaaObjekti, Color.MediumPurple, "taso", Shape.Rectangle); //purppura kenttäelementti kakkostasoon
-        kentta.SetTileMethod('3', LisaaObjekti, Color.BrightGreen, "taso", Shape.Rectangle); //vihreä kenttäelementti
+        kentta.SetTileMethod('3', LisaaObjekti, Color.Green, "taso", Shape.Rectangle); //vihreä kenttäelementti kolmostasoon
         kentta.SetTileMethod('P', LisaaObjekti, Color.Red, "portti", Shape.Octagon); //kentän poistumisportti
         kentta.SetTileMethod('*', LisaaRaha);
         kentta.SetTileMethod('N', LisaaPelaaja);
@@ -283,16 +283,15 @@ public class Andromeda : PhysicsGame
     /// <param name="muoto"></param>
     private void LisaaObjekti(Vector paikka, double leveys, double korkeus, Color vari, string tag, Shape muoto)
     {
-        PhysicsObject taso = PhysicsObject.CreateStaticObject(leveys, korkeus);
+        PhysicsObject objekti = PhysicsObject.CreateStaticObject(leveys, korkeus);
 
-        taso.Position = paikka;
-        taso.Color = vari;
-        taso.IgnoresPhysicsLogics = true;
-        taso.Tag = tag;
-        taso.Shape = muoto;
+        objekti.Position = paikka;
+        objekti.Color = vari;
+        objekti.IgnoresPhysicsLogics = true;
+        objekti.Tag = tag;
+        objekti.Shape = muoto;
         
-
-        Add(taso);
+        Add(objekti);
     }
 
 
