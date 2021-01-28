@@ -53,7 +53,7 @@ public class Andromeda : PhysicsGame
 
     private int kenttanro = 0;
 
-    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty uutta satsia kohteita aina kentän 
+    private int kauppavierailu = 0; //käytetään ns. kauppabugin korjaamiseen, ettei galaksikartalle ilmesty ylimääräistä satsia kohteita aina kentän päättyessä
     //private int rahatilanne;
 
     private readonly LaserGun laserase; //vihujen ase TBI
@@ -151,14 +151,13 @@ public class Andromeda : PhysicsGame
             }
             KauppaIkoni();
         }
-        else
+
+        else if (kenttanro == KENTTA_LKM)
         {
-            if (kenttanro == KENTTA_LKM)
-            {
-                Alkuvalikko();//tulee vaihtaa bossikentäksi kun se on tehty
-            }
+            Alkuvalikko();//tulee vaihtaa bossikentäksi kun se on tehty
         }
-        //pomovastus TBI
+
+        //kun pomovastuskin on voitettu, peli päättyy
         /*
         else
         {
@@ -237,7 +236,7 @@ public class Andromeda : PhysicsGame
     private void LuoKentta()
     {
         kenttanro++;
-        kauppavierailu = 0; //nollaa kauppavierailu-muuttujan, jotta kentän lopuksi tähdet luodaan uudelleen
+        kauppavierailu = 0; //nollaa kauppavierailu-muuttujan, jotta kentän lopuksi tähdet generoidaan uudelleen
 
         ClearAll();
         Gravity = new Vector(0, -800.0);
@@ -249,9 +248,9 @@ public class Andromeda : PhysicsGame
 
         //luo kenttänumeron mukaisen kentän tiedostosta
         TileMap kentta = TileMap.FromLevelAsset(kenttanro.ToString());
-        kentta.SetTileMethod('1', LisaaObjekti, Color.DarkBlue, "taso", Shape.Rectangle); //sininen kenttäelementti ykköstasoon
-        kentta.SetTileMethod('2', LisaaObjekti, Color.MediumPurple, "taso", Shape.Rectangle); //purppura kenttäelementti kakkostasoon
-        kentta.SetTileMethod('3', LisaaObjekti, Color.Green, "taso", Shape.Rectangle); //vihreä kenttäelementti kolmostasoon
+        kentta.SetTileMethod('1', LisaaObjekti, Color.DarkBlue, "taso", Shape.Rectangle); //kenttäelementti ykkös-tierin tasoon
+        kentta.SetTileMethod('2', LisaaObjekti, Color.DarkJungleGreen, "taso", Shape.Rectangle); //kenttäelementti kakkos-tierin tasoon
+        kentta.SetTileMethod('3', LisaaObjekti, Color.MediumPurple, "taso", Shape.Rectangle); //kenttäelementti kolmos-tierin tasoon
         kentta.SetTileMethod('P', LisaaObjekti, Color.Red, "portti", Shape.Octagon); //kentän poistumisportti
         kentta.SetTileMethod('*', LisaaRaha);
         kentta.SetTileMethod('N', LisaaPelaaja);
@@ -275,12 +274,12 @@ public class Andromeda : PhysicsGame
     /// <summary>
     /// Lisää kenttäobjekti, kuten seinä, raha tai poistumisportti.
     /// </summary>
-    /// <param name="paikka"></param>
-    /// <param name="leveys"></param>
-    /// <param name="korkeus"></param>
-    /// <param name="vari"></param>
-    /// <param name="tag"></param>
-    /// <param name="muoto"></param>
+    /// <param name="paikka">Kenttäobjektin sijainti pelikentällä, saadaan tiedostosta</param>
+    /// <param name="leveys">Kenttäobjektin leveys</param>
+    /// <param name="korkeus">Kenttäobjektin korkeus</param>
+    /// <param name="vari">Kenttäobjektin väri</param>
+    /// <param name="tag">Kenttäobjektin tägi, käytetään mm. ammusten osumatunnistuksessa</param>
+    /// <param name="muoto">Kenttäobjektin muoto</param>
     private void LisaaObjekti(Vector paikka, double leveys, double korkeus, Color vari, string tag, Shape muoto)
     {
         PhysicsObject objekti = PhysicsObject.CreateStaticObject(leveys, korkeus);
@@ -348,11 +347,11 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// lisää kenttään kerättävä kolikko
+    /// Lisää kenttään kerättävä kolikko
     /// </summary>
-    /// <param name="paikka">kolikon sijainti</param>
-    /// <param name="leveys">kolikon leveys</param>
-    /// <param name="korkeus">kolikon korkeus</param>
+    /// <param name="paikka">Kolikon sijainti</param>
+    /// <param name="leveys">Kolikon leveys</param>
+    /// <param name="korkeus">Kolikon korkeus</param>
     private void LisaaRaha(Vector paikka, double leveys, double korkeus)
     {
         PhysicsObject raha = PhysicsObject.CreateStaticObject((leveys * 0.5) , (korkeus * 0.5));
@@ -394,10 +393,10 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// liikuttaa hahmoa
+    /// Liikuttaa hahmoa
     /// </summary>
-    /// <param name="pelaaja">pelaajahahmo</param>
-    /// <param name="nopeus">pelaajan liikkumisnopeus</param>
+    /// <param name="pelaaja">Pelaajahahmo</param>
+    /// <param name="nopeus">Pelaajan liikkumisnopeus</param>
     private void Liikuta(PlatformCharacter pelaaja, double nopeus)
     {
         pelaaja.Walk(nopeus);
@@ -407,10 +406,10 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// laittaa hahmon hyppäämään
+    /// Laittaa hahmon hyppäämään
     /// </summary>
-    /// <param name="hahmo">hyppäävä pelaajahahmo</param>
-    /// <param name="hyppynopeus">hyppynopeus</param>
+    /// <param name="hahmo">Hyppäävä pelaajahahmo</param>
+    /// <param name="hyppynopeus">Hyppynopeus</param>
     private void Hyppaa(PlatformCharacter hahmo, double hyppynopeus)
     {
         pelaaja.Jump(hyppynopeus);
@@ -418,10 +417,10 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// rahan keräämisen käsittely
+    /// Rahan keräämisen käsittely
     /// </summary>
-    /// <param name="hahmo">rahaan törmäävä pelihahmo</param>
-    /// <param name="raha">kolikko, johon törmätään</param>
+    /// <param name="hahmo">Rahaan törmäävä pelihahmo</param>
+    /// <param name="raha">Kolikko, johon törmätään</param>
     private void TormaaRahaan(PhysicsObject hahmo, PhysicsObject raha)
     {
         raha.Destroy();
@@ -433,8 +432,8 @@ public class Andromeda : PhysicsGame
     /// <summary>
     /// Porttiinmenon käsittely
     /// </summary>
-    /// <param name="hahmo">porttiin osuva (pelaaja)hahmo</param>
-    /// <param name="portti">portti johon törmätään</param>
+    /// <param name="hahmo">Porttiin osuva (pelaaja)hahmo</param>
+    /// <param name="portti">Portti johon törmätään</param>
     private void MenePorttiin(PhysicsObject hahmo, PhysicsObject portti)
     {
         nappi.Play();
@@ -489,12 +488,10 @@ public class Andromeda : PhysicsGame
             ammus.Destroy();
             rahalaskuri.Value += 100;
         }
-        else
+
+        else if (kohde.Tag.ToString() == "seinä")
         {
-            if (kohde.Tag.ToString() == "seinä")
-            {
-                ammus.Destroy();
-            }
+            ammus.Destroy();
         }
     }
 
