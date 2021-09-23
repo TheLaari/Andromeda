@@ -61,7 +61,7 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// Pelin käynnistävä aliohjelma
+    /// Pelin käynnistävä aliohjelma.
     /// </summary>
     public override void Begin()
     {
@@ -74,7 +74,7 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// Päävalikko, josta peli alkaa
+    /// Päävalikko, josta peli alkaa.
     /// </summary>
     private void Alkuvalikko()
     {
@@ -115,7 +115,7 @@ public class Andromeda : PhysicsGame
 
 
     /// <summary>
-    /// Generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin
+    /// Generoi galaksikartalle tietyn määrän kohdetähtiä ja kauppapaikan satunnaisiin sijainteihin.
     /// </summary>
     private void LataaGalaksi()
     {
@@ -151,7 +151,6 @@ public class Andromeda : PhysicsGame
             }
             KauppaIkoni();
         }
-
         else if (kenttanro == KENTTA_LKM)
         {
             Alkuvalikko();//tulee vaihtaa bossikentäksi kun se on tehty
@@ -170,7 +169,7 @@ public class Andromeda : PhysicsGame
     /// <summary>
     /// Luo galaksikarttaan punaisen napin kenttää varten.
     /// </summary>
-    /// <param name="kenttanumero">käytetään kentän uniikin tägin luomista varten</param>
+    /// <param name="kenttanumero">Käytetään kentän uniikin tägin luomista varten.</param>
     private void KohdeIkoni(int kenttanumero)
     {
         GameObject system = new GameObject(15, 15)
@@ -401,7 +400,7 @@ public class Andromeda : PhysicsGame
     {
         pelaaja.Walk(nopeus);
         pelaaja.Animation.Start(1);
-        pelaaja.Animation.FPS = 10;
+        pelaaja.Animation.FPS = 30;
     }
 
 
@@ -488,7 +487,6 @@ public class Andromeda : PhysicsGame
             ammus.Destroy();
             rahalaskuri.Value += 100;
         }
-
         else if (kohde.Tag.ToString() == "seinä")
         {
             ammus.Destroy();
